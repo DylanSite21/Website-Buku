@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { redirect, forbidden } from "next/navigation";
+import { redirect, forbidden, unauthorized } from "next/navigation";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { deleteSession, readSession } from "@/lib/session";
@@ -32,7 +32,7 @@ export async function getCurrentUser() {
 export async function requireUser() {
   const user = await getCurrentUser();
 
-  if (!user) redirect("/login");
+  if (!user) unauthorized();
 
   return user;
 }

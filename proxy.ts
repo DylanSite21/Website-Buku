@@ -1,22 +1,34 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-// Catatan: Sesuaikan pemanggilan session Auth.js Anda di sini
-// Contoh implementasi logika proteksi rute enterprise:
+import { getSessionUserId, SESSION_COOKIE_NAME } from "@/lib/session-token";
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const protectedPath =
-    pathname.startsWith("/admin") ||
+    // pathname.startsWith("/admin") ||
     pathname.startsWith("/api/admin") ||
-    pathname === "/cart" ||
-    pathname.startsWith("/transactions") ||
-    pathname.startsWith("/loans") ||
+    // pathname === "/cart" ||
+    // pathname.startsWith("/transactions") ||
+    // pathname.startsWith("/loans") ||
     pathname.startsWith("/api/payment-proofs");
-  if (protectedPath && !request.cookies.has("book-store-session")) {
-    const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(loginUrl);
+  const token = request.cookies.get(SESSION_COOKIE_NAME)?.value;
+  // if (protectedPath && (!token || !(await getSessionUserId(token)))) {
+  //   const loginUrl = new URL("/login", request.url);
+  //   loginUrl.searchParams.set("callbackUrl", pathname);
+  //   const response = NextResponse.redirect(loginUrl);
+  //   if (token) response.cookies.delete(SESSION_COOKIE_NAME);
+  //   return response;
+  // }
+
+   if (protectedPath && (!token || !(await getSessionUserId(token)))) {
+    const unauthorizedUrl = new URL("/unauthorized", request.url);
+
+    const response = NextResponse.redirect(unauthorizedUrl);
+
+    if (token) response.cookies.delete(SESSION_COOKIE_NAME);
+
+    return response;
   }
 
   return NextResponse.next();
@@ -24,11 +36,11 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/admin/:path*",
+    // "/admin/:path*",
     "/api/admin/:path*",
-    "/cart",
-    "/transactions/:path*",
-    "/loans/:path*",
+    // "/cart",
+    // "/transactions/:path*",
+    // "/loans/:path*",
     "/api/payment-proofs/:path*",
   ],
 };
