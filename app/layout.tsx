@@ -10,7 +10,7 @@ const bricolage = Bricolage_Grotesque({
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree" });
 
 export const metadata: Metadata = {
-  title: "Perpustakaan",
+  title: "Books Store",
   description: "Pinjam dan kelola buku perpustakaan",
 };
 
