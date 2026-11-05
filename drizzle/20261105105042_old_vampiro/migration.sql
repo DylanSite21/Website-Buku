@@ -1,0 +1,2 @@
+ALTER TABLE `stock_movements` ADD `stock_movement_type` enum('initial','restock','purchase','loan_reserved','loan_issued','loan_returned','loan_released','adjustment') NOT NULL;--> statement-breakpoint
+ALTER TABLE `stock_movements` DROP COLUMN `type`;
