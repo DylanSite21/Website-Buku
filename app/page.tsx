@@ -1,69 +1,123 @@
-import Image from "next/image";
+import Link from "next/link";
+import { and, eq, like, or } from "drizzle-orm";
+import { borrowBook } from "@/actions/loans";
+import { db } from "@/db";
+import { books, categories } from "@/db/schema";
+import { getCurrentUser } from "@/lib/dal";
+import { BookCover } from "@/app/components/book-cover";
 
-export default function Home() {
+const errors: Record<string, string> = {
+  "stok-habis": "Stok buku ini sudah habis.",
+  "sudah-dipinjam": "Kamu sedang meminjam buku ini.",
+  "hanya-anggota": "Hanya akun anggota yang bisa meminjam buku.",
+};
+
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; category?: string; error?: string }>;
+}) {
+  const { q, category, error } = await searchParams;
+  const user = await getCurrentUser();
+
+  const conditions = [];
+  if (q)
+    conditions.push(
+      or(like(books.title, `%${q}%`), like(books.author, `%${q}%`)),
+    );
+  if (category) conditions.push(eq(books.categoryId, Number(category)));
+
+  const [list, cats] = await Promise.all([
+    db
+      .select({ book: books, category: categories.name })
+      .from(books)
+      .leftJoin(categories, eq(books.categoryId, categories.id))
+      .where(and(...conditions))
+      .orderBy(books.title),
+    db.select().from(categories).orderBy(categories.name),
+  ]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Katalog buku</h1>
+        <p className="text-muted">Cari buku, lalu pinjam buku.</p>
+      </div>
+
+      {error && errors[error] && (
+        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          {errors[error]}
+        </p>
+      )}
+
+      <form className="flex flex-wrap gap-2">
+        <input
+          name="q"
+          defaultValue={q}
+          placeholder="Cari judul atau penulis"
+          className="input max-w-xs"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        <select
+          name="category"
+          defaultValue={category ?? ""}
+          className="input max-w-48"
+        >
+          <option value="">Semua kategori</option>
+          {cats.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <button className="btn-primary">Cari</button>
+      </form>
+
+      {list.length === 0 ? (
+        <p className="text-muted">
+          Tidak ada buku yang cocok. Coba kata kunci lain.
+        </p>
+      ) : (
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {list.map(({ book, category }) => (
+            <li
+              key={book.id}
+              className="flex gap-4 rounded-lg border border-line bg-white p-4"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+              <BookCover id={book.id} title={book.title} cover={book.cover} />
+              <div className="flex min-w-0 flex-1 flex-col">
+                <h2 className="font-semibold leading-snug">{book.title}</h2>
+                <p className="text-sm text-muted">{book.author}</p>
+                {category && (
+                  <p className="mt-1 text-xs text-muted">{category}</p>
+                )}
+                <p className="mt-auto pt-2 text-sm">
+                  {book.availableCopies > 0
+                    ? `${book.availableCopies} dari ${book.totalCopies} tersedia`
+                    : "Sedang dipinjam semua"}
+                </p>
+
+                {user?.role === "user" ? (
+                  <form
+                    action={borrowBook.bind(null, book.id)}
+                    className="mt-2"
+                  >
+                    <button
+                      className="btn-primary"
+                      disabled={book.availableCopies === 0}
+                    >
+                      Pinjam
+                    </button>
+                  </form>
+                ) : !user ? (
+                  <Link href="/login" className="btn-outline mt-2">
+                    Masuk untuk meminjam
+                  </Link>
+                ) : null}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
