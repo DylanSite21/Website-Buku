@@ -4,11 +4,9 @@ const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
     agentFeedback: true,
-    serverActions: { bodySizeLimit: "3mb" },
   },
-  allowedDevOrigins: ["dylansite.online"],
-  cacheComponents: false,
-  partialPrefetching: false,
+  cacheComponents: true,
+  partialPrefetching: true,
   turbopack: {
     rules: {
       "*.css": {
