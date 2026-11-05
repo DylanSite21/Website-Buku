@@ -6,21 +6,17 @@ import type { NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Contoh proteksi path admin
-  if (pathname.startsWith("/admin")) {
-    const sessionCookie =
-      request.cookies.get("authjs.session-token") ||
-      request.cookies.get("__Secure-authjs.session-token");
-
-    if (!sessionCookie) {
-      return NextResponse.redirect(
-        new URL(
-          "/login?callbackUrl=" + encodeURIComponent(pathname),
-          request.url,
-        ),
-      );
-    }
-    // Validasi role admin dapat dilakukan via token dekripsi atau query database cepat di sini
+  const protectedPath =
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/api/admin") ||
+    pathname === "/cart" ||
+    pathname.startsWith("/transactions") ||
+    pathname.startsWith("/loans") ||
+    pathname.startsWith("/api/payment-proofs");
+  if (protectedPath && !request.cookies.has("book-store-session")) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
@@ -31,7 +27,8 @@ export const config = {
     "/admin/:path*",
     "/api/admin/:path*",
     "/cart",
-    "/transactions",
-    "/loans",
+    "/transactions/:path*",
+    "/loans/:path*",
+    "/api/payment-proofs/:path*",
   ],
 };

@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   users,
   categories,
@@ -48,9 +47,9 @@ export interface SessionUser {
 }
 
 // --- API Response Standardized Wrapper ---
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
-  error?: string | Record<string, any>;
+  error?: string | Record<string, unknown>;
 }

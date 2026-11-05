@@ -13,7 +13,10 @@ if (process.env.NODE_ENV !== "production") globalForDb.pool = pool;
 
 // Workaround: drizzle RC membaca pool.config, tapi PromisePool tidak
 // mengeksposnya. Arahkan ke config koneksi milik pool aslinya.
-const raw = pool as any;
+const raw = pool as unknown as {
+  config?: unknown;
+  pool: { config: { connectionConfig: unknown } };
+};
 if (!raw.config) {
   Object.defineProperty(raw, "config", {
     value: raw.pool.config.connectionConfig,

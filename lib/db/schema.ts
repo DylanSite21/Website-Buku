@@ -6,6 +6,7 @@ import {
   int,
   boolean,
   timestamp,
+  datetime,
   uniqueIndex,
   mysqlEnum,
 } from "drizzle-orm/mysql-core";
@@ -82,7 +83,9 @@ export const books = mysqlTable("books", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  categoryId: varchar("category_id", { length: 36 }).notNull(),
+  categoryId: varchar("category_id", { length: 36 })
+    .notNull()
+    .references(() => categories.id, { onDelete: "restrict" }),
   title: varchar("title", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   isbn: varchar("isbn", { length: 20 }).unique(),
@@ -101,7 +104,10 @@ export const stocks = mysqlTable("stocks", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  bookId: varchar("book_id", { length: 36 }).notNull().unique(),
+  bookId: varchar("book_id", { length: 36 })
+    .notNull()
+    .unique()
+    .references(() => books.id, { onDelete: "restrict" }),
   totalQuantity: int("total_quantity").default(0).notNull(),
   availableQuantity: int("available_quantity").default(0).notNull(),
   reservedQuantity: int("reserved_quantity").default(0).notNull(),
@@ -113,7 +119,10 @@ export const carts = mysqlTable("carts", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: varchar("user_id", { length: 36 }).notNull().unique(),
+  userId: varchar("user_id", { length: 36 })
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
@@ -124,8 +133,12 @@ export const cartItems = mysqlTable(
     id: varchar("id", { length: 36 })
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    cartId: varchar("cart_id", { length: 36 }).notNull(),
-    bookId: varchar("book_id", { length: 36 }).notNull(),
+    cartId: varchar("cart_id", { length: 36 })
+      .notNull()
+      .references(() => carts.id, { onDelete: "cascade" }),
+    bookId: varchar("book_id", { length: 36 })
+      .notNull()
+      .references(() => books.id, { onDelete: "restrict" }),
     quantity: int("quantity").notNull().default(1),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
@@ -141,15 +154,18 @@ export const loans = mysqlTable("loans", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: varchar("user_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 36 })
+    .notNull()
+    .references(() => users.id, { onDelete: "restrict" }),
   loanNumber: varchar("loan_number", { length: 100 }).notNull().unique(),
   status: loanStatusEnum.default("pending").notNull(),
-  loanDate: timestamp("loan_date"),
-  dueDate: timestamp("due_date"),
-  approvedBy: varchar("approved_by", { length: 36 }),
-  approvedAt: timestamp("approved_at"),
-  borrowedAt: timestamp("borrowed_at"),
-  returnedAt: timestamp("returned_at"),
+  loanDate: datetime("loan_date"),
+  dueDate: datetime("due_date"),
+  approvedBy: varchar("approved_by", { length: 36 })
+    .references(() => users.id, { onDelete: "set null" }),
+  approvedAt: datetime("approved_at"),
+  borrowedAt: datetime("borrowed_at"),
+  returnedAt: datetime("returned_at"),
   rejectionReason: text("rejection_reason"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -160,8 +176,12 @@ export const loanItems = mysqlTable("loan_items", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  loanId: varchar("loan_id", { length: 36 }).notNull(),
-  bookId: varchar("book_id", { length: 36 }).notNull(),
+  loanId: varchar("loan_id", { length: 36 })
+    .notNull()
+    .references(() => loans.id, { onDelete: "cascade" }),
+  bookId: varchar("book_id", { length: 36 })
+    .notNull()
+    .references(() => books.id, { onDelete: "restrict" }),
   quantity: int("quantity").notNull().default(1),
 });
 
@@ -169,15 +189,18 @@ export const transactions = mysqlTable("transactions", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  userId: varchar("user_id", { length: 36 }).notNull(),
+  userId: varchar("user_id", { length: 36 })
+    .notNull()
+    .references(() => users.id, { onDelete: "restrict" }),
   invoiceNumber: varchar("invoice_number", { length: 100 }).notNull().unique(),
   totalAmount: decimal("total_amount", { precision: 12, scale: 2 }).notNull(),
   paymentMethod: paymentMethodEnum.default("bank_transfer").notNull(),
   status: transactionStatusEnum.default("pending").notNull(),
   paymentProof: varchar("payment_proof", { length: 500 }),
-  verifiedBy: varchar("verified_by", { length: 36 }),
-  verifiedAt: timestamp("verified_at"),
-  paidAt: timestamp("paid_at"),
+  verifiedBy: varchar("verified_by", { length: 36 })
+    .references(() => users.id, { onDelete: "set null" }),
+  verifiedAt: datetime("verified_at"),
+  paidAt: datetime("paid_at"),
   rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
@@ -187,8 +210,12 @@ export const transactionItems = mysqlTable("transaction_items", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  transactionId: varchar("transaction_id", { length: 36 }).notNull(),
-  bookId: varchar("book_id", { length: 36 }).notNull(),
+  transactionId: varchar("transaction_id", { length: 36 })
+    .notNull()
+    .references(() => transactions.id, { onDelete: "cascade" }),
+  bookId: varchar("book_id", { length: 36 })
+    .notNull()
+    .references(() => books.id, { onDelete: "restrict" }),
   bookTitle: varchar("book_title", { length: 255 }).notNull(),
   price: decimal("price", { precision: 12, scale: 2 }).notNull(),
   quantity: int("quantity").notNull(),
@@ -199,8 +226,11 @@ export const stockMovements = mysqlTable("stock_movements", {
   id: varchar("id", { length: 36 })
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  bookId: varchar("book_id", { length: 36 }).notNull(),
-  userId: varchar("user_id", { length: 36 }),
+  bookId: varchar("book_id", { length: 36 })
+    .notNull()
+    .references(() => books.id, { onDelete: "restrict" }),
+  userId: varchar("user_id", { length: 36 })
+    .references(() => users.id, { onDelete: "set null" }),
   type: stockMovementTypeEnum.notNull(),
   quantity: int("quantity").notNull(),
   beforeQuantity: int("before_quantity").notNull(),

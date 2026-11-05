@@ -7,8 +7,8 @@
   --color-line: #dde2e8;
   --color-brand: #0e6b6b;
   --color-brand-dark: #0a5252;
-  --font-display: var(--font-bricolage), sans-serif;
-  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-display: "Avenir Next", "Segoe UI", sans-serif;
+  --font-sans: "Segoe UI", system-ui, sans-serif;
 }
 
 body {

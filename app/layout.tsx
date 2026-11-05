@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Figtree } from "next/font/google";
 import { Navbar } from "./components/navbar";
 import "./globals.css";
 
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  variable: "--font-bricolage",
-});
-const figtree = Figtree({ subsets: ["latin"], variable: "--font-figtree" });
-
 export const metadata: Metadata = {
-  title: "Books Store",
-  description: "Pinjam dan kelola buku perpustakaan",
+  title: { default: "BukuRuang | Toko Buku & Perpustakaan", template: "%s | BukuRuang" },
+  description: "Jelajahi, beli, dan pinjam buku dalam satu ruang.",
 };
 
 export default function RootLayout({
@@ -20,10 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className={`${bricolage.variable} ${figtree.variable}`}>
+    <html lang="id">
       <body>
         <Navbar />
-        <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+        <main className="mx-auto min-h-[calc(100vh-73px)] max-w-7xl px-5 py-10">{children}</main>
       </body>
     </html>
   );
