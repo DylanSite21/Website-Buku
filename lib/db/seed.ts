@@ -20,7 +20,25 @@ const sampleBooks = [
   { title: "Atomic Habits", slug: "atomic-habits", author: "James Clear", publisher: "Penguin Random House", isbn: "9780735211292", category: "Pengembangan Diri", year: 2018, price: "125000.00", description: "Panduan praktis membangun kebiasaan yang lebih baik.", quantity: 4 },
 ];
 
+const demoAccounts = [
+  {
+    name: "Administrator Demo",
+    email: "admin@bukuruang.test",
+    password: "Admin123!Demo",
+    role: "admin" as const,
+  },
+  {
+    name: "Pengguna Demo",
+    email: "user@bukuruang.test",
+    password: "User123!Demo",
+    role: "user" as const,
+  },
+];
+
 async function main() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Seeder demo hanya boleh dijalankan di environment non-production.");
+  }
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error("DATABASE_URL belum diatur.");
   const connection = await mysql.createConnection(url);
@@ -61,22 +79,33 @@ async function main() {
       });
     }
 
-    const adminEmail = process.env.SEED_ADMIN_EMAIL?.trim().toLowerCase();
-    const adminPassword = process.env.SEED_ADMIN_PASSWORD;
-    if (adminEmail || adminPassword) {
-      if (!adminEmail || !adminPassword || adminPassword.length < 12) {
-        throw new Error("Isi SEED_ADMIN_EMAIL dan SEED_ADMIN_PASSWORD (minimal 12 karakter) bersama-sama.");
+    for (const account of demoAccounts) {
+      const [existingAccount] = await db.select({
+        id: users.id,
+        role: users.role,
+        password: users.password,
+        isActive: users.isActive,
+      }).from(users)
+        .where(eq(users.email, account.email)).limit(1);
+      if (existingAccount) {
+        if (existingAccount.role !== account.role) {
+          throw new Error(`Email demo ${account.email} sudah digunakan untuk role lain.`);
+        }
+        if (!existingAccount.isActive || !(await bcrypt.compare(account.password, existingAccount.password))) {
+          throw new Error(`Akun demo ${account.email} sudah ada tetapi kredensialnya tidak cocok atau akun nonaktif; data tidak diubah.`);
+        }
+        continue;
       }
-      const [existingAdmin] = await db.select({ id: users.id }).from(users)
-        .where(eq(users.email, adminEmail)).limit(1);
-      if (!existingAdmin) {
-        await db.insert(users).values({
-          id: randomUUID(), name: "Administrator", email: adminEmail,
-          password: await bcrypt.hash(adminPassword, 12), role: "admin",
-        });
-      }
+
+      await db.insert(users).values({
+        id: randomUUID(),
+        name: account.name,
+        email: account.email,
+        password: await bcrypt.hash(account.password, 12),
+        role: account.role,
+      });
     }
-    console.log("Seed selesai. Data yang sudah ada tidak dihapus atau ditimpa.");
+    console.log("Seed selesai. Katalog dan akun demo siap; data yang sudah ada tidak dihapus atau ditimpa.");
   } finally {
     await connection.end();
   }
