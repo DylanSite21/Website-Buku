@@ -6,7 +6,8 @@ const nextConfig: NextConfig = {
     agentFeedback: true,
     serverActions: { bodySizeLimit: "3mb" },
   },
-  allowedDevOrigins: ["dylansite.online"],
+  allowedDevOrigins: ["win.dylansite.online", "dylansite.online"],
+  devIndicators: false,
   cacheComponents: false,
   partialPrefetching: false,
   turbopack: {

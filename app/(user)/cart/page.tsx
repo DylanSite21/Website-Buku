@@ -22,27 +22,28 @@ export default async function CartPage() {
   const total = items.reduce((sum, { item, book }) => sum + Number(book.price) * item.quantity, 0);
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-8">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Pembelian</p>
-        <h1 className="mt-2 text-4xl font-bold">Keranjang belanja</h1>
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Keranjang belanja</h1>
+        <p className="mt-3 text-muted">Tinjau pilihan buku sebelum melanjutkan checkout.</p>
       </div>
       {items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line bg-white p-12 text-center">
+        <div className="rounded-2xl border border-dashed border-line bg-white px-5 py-14 text-center shadow-sm">
           <p className="text-lg font-semibold">Keranjang Anda masih kosong.</p>
           <Link className="btn-primary mt-5" href="/books">Jelajahi katalog</Link>
         </div>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <ul className="space-y-3">
             {items.map(({ item, book, available }) => (
-              <li key={item.id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line bg-white p-5">
+              <li key={item.id} className="flex flex-col justify-between gap-5 rounded-2xl border border-line bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:p-5">
                 <div>
                   <Link href={`/books/${book.slug}`} className="font-bold hover:text-brand">{book.title}</Link>
                   <p className="mt-1 text-sm text-muted">{formatCurrency(book.price)} · {available} tersedia</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <form action={updateCartItem.bind(null, item.id)} className="flex gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <form action={updateCartItem.bind(null, item.id)} className="flex min-w-0 flex-1 gap-2 sm:flex-none">
                     <input className="input w-20" type="number" name="quantity" min="1" max="20" defaultValue={item.quantity} aria-label={`Jumlah ${book.title}`} />
                     <button className="btn-outline">Perbarui</button>
                   </form>
@@ -53,9 +54,9 @@ export default async function CartPage() {
               </li>
             ))}
           </ul>
-          <aside className="h-fit space-y-5 rounded-xl border border-line bg-white p-6">
+          <aside className="h-fit space-y-5 rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-6 lg:sticky lg:top-6">
             <h2 className="text-xl font-bold">Ringkasan pesanan</h2>
-            <div className="flex justify-between border-t border-line pt-4 font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
+            <div className="flex justify-between border-t border-line pt-4 text-lg font-bold"><span>Total</span><span>{formatCurrency(total)}</span></div>
             <p className="text-xs leading-5 text-muted">Stok akan diperiksa kembali saat pembayaran dikonfirmasi oleh admin.</p>
             <CheckoutForm />
           </aside>

@@ -21,20 +21,43 @@ export default async function TransactionsPage() {
   const rows = await db.select().from(transactions).where(eq(transactions.userId, user.id))
     .orderBy(desc(transactions.createdAt));
   return (
-    <div className="space-y-7">
-      <div><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Akun Anda</p><h1 className="mt-2 text-4xl font-bold">Pesanan</h1></div>
+    <div className="space-y-8">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Akun Anda</p>
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Pesanan</h1>
+        <p className="mt-3 text-muted">Lihat status dan detail pembelian buku Anda.</p>
+      </div>
       {rows.length ? (
-        <div className="overflow-x-auto rounded-xl border border-line bg-white">
-          <table className="w-full min-w-[640px] text-left text-sm">
-            <thead className="bg-gray-50 text-muted"><tr><th className="p-4">Invoice</th><th className="p-4">Tanggal</th><th className="p-4">Total</th><th className="p-4">Status</th><th className="p-4"></th></tr></thead>
-            <tbody>{rows.map((row) => <tr key={row.id} className="border-t border-line">
-              <td className="p-4 font-semibold">{row.invoiceNumber}</td><td className="p-4">{formatDate(row.createdAt)}</td>
-              <td className="p-4">{formatCurrency(row.totalAmount)}</td><td className="p-4">{labels[row.status] ?? row.status}</td>
-              <td className="p-4"><Link className="font-semibold text-brand" href={`/transactions/${row.invoiceNumber}`}>Detail</Link></td>
-            </tr>)}</tbody>
-          </table>
+        <ul className="grid gap-4 md:grid-cols-2">
+          {rows.map((row) => (
+            <li key={row.id} className="rounded-2xl border border-line bg-white p-5 shadow-sm transition hover:shadow-md">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">Invoice</p>
+                  <p className="mt-1 break-all font-bold">{row.invoiceNumber}</p>
+                </div>
+                <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">
+                  {labels[row.status] ?? row.status}
+                </span>
+              </div>
+              <div className="mt-5 flex flex-wrap items-end justify-between gap-4 border-t border-line pt-4">
+                <div>
+                  <p className="text-xs text-muted">Tanggal pesanan</p>
+                  <p className="mt-1 text-sm font-medium">{formatDate(row.createdAt)}</p>
+                  <p className="mt-3 text-xs text-muted">Total</p>
+                  <p className="mt-1 font-bold">{formatCurrency(row.totalAmount)}</p>
+                </div>
+                <Link className="btn-outline" href={`/transactions/${row.invoiceNumber}`}>Lihat detail</Link>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-line bg-white px-5 py-14 text-center shadow-sm">
+          <p className="font-semibold">Belum ada pesanan.</p>
+          <Link className="btn-primary mt-5" href="/books">Jelajahi katalog</Link>
         </div>
-      ) : <p className="rounded-xl border border-dashed border-line bg-white p-10 text-center text-muted">Belum ada pesanan.</p>}
+      )}
     </div>
   );
 }

@@ -8,9 +8,9 @@ import { FormSubmit } from "@/app/components/form-submit";
 export default function LoginPage() {
   const [state, formAction] = useActionState(login, {});
   return (
-    <section className="mx-auto max-w-md rounded-xl border border-line bg-white p-8 shadow-sm">
+    <section className="mx-auto max-w-md rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-8">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Selamat datang kembali</p>
-      <h1 className="mt-2 text-3xl font-bold">Masuk ke akun</h1>
+      <h1 className="mt-2 text-3xl font-extrabold tracking-tight">Masuk ke akun</h1>
       <p className="mt-2 text-sm text-muted">Lanjutkan membaca dan mengelola koleksi Anda.</p>
       <form action={formAction} className="mt-7 space-y-4">
         <label className="block">

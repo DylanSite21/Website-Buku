@@ -8,9 +8,9 @@ import { FormSubmit } from "@/app/components/form-submit";
 export default function RegisterPage() {
   const [state, formAction] = useActionState(register, {});
   return (
-    <section className="mx-auto max-w-md rounded-xl border border-line bg-white p-8 shadow-sm">
+    <section className="mx-auto max-w-md rounded-2xl border border-line bg-white p-5 shadow-sm sm:p-8">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Bergabung bersama kami</p>
-      <h1 className="mt-2 text-3xl font-bold">Buat akun</h1>
+      <h1 className="mt-2 text-3xl font-extrabold tracking-tight">Buat akun</h1>
       <p className="mt-2 text-sm text-muted">Satu akun untuk berbelanja dan meminjam buku.</p>
       <form action={formAction} className="mt-7 space-y-4">
         <label className="block">

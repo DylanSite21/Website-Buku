@@ -16,7 +16,7 @@ export default function RootLayout({
     <html lang="id">
       <body>
         <Navbar />
-        <main className="mx-auto min-h-[calc(100vh-73px)] max-w-7xl px-5 py-10">{children}</main>
+        <main className="mx-auto min-h-[calc(100vh-73px)] max-w-7xl px-4 py-6 sm:px-5 sm:py-10">{children}</main>
       </body>
     </html>
   );

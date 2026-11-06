@@ -28,29 +28,38 @@ export default async function LoansPage() {
     .orderBy(desc(loans.createdAt));
   const today = new Date();
   return (
-    <div className="space-y-7">
-      <div><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Perpustakaan</p><h1 className="mt-2 text-4xl font-bold">Peminjaman saya</h1></div>
+    <div className="space-y-8">
+      <div>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Perpustakaan</p>
+        <h1 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Peminjaman saya</h1>
+        <p className="mt-3 text-muted">Pantau status pengajuan dan tenggat pengembalian buku.</p>
+      </div>
       {rows.length ? (
-        <div className="space-y-3">
+        <ul className="grid gap-4 md:grid-cols-2">
           {rows.map(({ loan, item, book }) => {
             const status = loan.status === "borrowed" && loan.dueDate && loan.dueDate < today ? "overdue" : loan.status;
             return (
-              <article key={loan.id} className="flex flex-wrap items-center justify-between gap-5 rounded-xl border border-line bg-white p-5">
+              <li key={loan.id} className="flex flex-col justify-between gap-5 rounded-2xl border border-line bg-white p-5 shadow-sm">
                 <div>
-                  <p className="text-xs text-muted">{loan.loanNumber}</p>
-                  <Link href={`/books/${book.slug}`} className="mt-1 block font-bold hover:text-brand">{book.title}</Link>
-                  <p className="mt-1 text-sm text-muted">{item.quantity} eksemplar · Tenggat {formatDate(loan.dueDate)}</p>
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <p className="break-all text-xs text-muted">{loan.loanNumber}</p>
+                    <span className="rounded-full bg-brand/10 px-3 py-1 text-xs font-semibold text-brand">{labels[status] ?? status}</span>
+                  </div>
+                  <Link href={`/books/${book.slug}`} className="mt-3 block text-lg font-bold hover:text-brand">{book.title}</Link>
+                  <p className="mt-2 text-sm text-muted">{item.quantity} eksemplar · Tenggat {formatDate(loan.dueDate)}</p>
                   {loan.rejectionReason && <p className="mt-2 text-sm text-red-700">{loan.rejectionReason}</p>}
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-brand">{labels[status] ?? status}</span>
-                  {loan.status === "pending" && <form action={cancelLoan.bind(null, loan.id)}><button className="btn-outline">Batalkan</button></form>}
-                </div>
-              </article>
+                {loan.status === "pending" && <form action={cancelLoan.bind(null, loan.id)}><button className="btn-outline">Batalkan pengajuan</button></form>}
+              </li>
             );
           })}
+        </ul>
+      ) : (
+        <div className="rounded-2xl border border-dashed border-line bg-white px-5 py-14 text-center shadow-sm">
+          <p className="font-semibold">Belum ada pengajuan peminjaman.</p>
+          <Link className="btn-primary mt-5" href="/books">Cari buku</Link>
         </div>
-      ) : <p className="rounded-xl border border-dashed border-line bg-white p-10 text-center text-muted">Belum ada pengajuan peminjaman. <Link className="font-semibold text-brand" href="/books">Cari buku</Link></p>}
+      )}
     </div>
   );
 }
