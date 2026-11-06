@@ -13,6 +13,7 @@ export async function Navbar() {
         </Link>
         <div className="flex flex-wrap items-center gap-5 text-sm font-medium">
           <Link className="hover:text-brand" href="/books">Katalog</Link>
+          <Link className="hover:text-brand" href="/about">Tentang Kami</Link>
           {user?.role === "user" && (
             <>
               <Link className="hover:text-brand" href="/cart">Keranjang</Link>

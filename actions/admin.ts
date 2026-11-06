@@ -34,8 +34,9 @@ export async function saveCategory(
     await db.insert(categories).values({ id: randomUUID(), name, slug, description: description || null });
   }
   revalidatePath("/admin/categories");
+  if (categoryId) revalidatePath(`/admin/categories/${categoryId}`);
   revalidatePath("/books");
-  redirect("/admin/categories");
+  redirect(categoryId ? `/admin/categories/${categoryId}` : "/admin/categories");
 }
 
 export async function deleteCategory(categoryId: string) {
@@ -71,6 +72,7 @@ export async function changeStock(bookId: string, _: FormState, formData: FormDa
     throw error;
   }
   revalidatePath("/admin/stocks");
+  revalidatePath(`/admin/stocks/${bookId}`);
   revalidatePath("/books");
   return { success: "Stok berhasil diperbarui." };
 }
