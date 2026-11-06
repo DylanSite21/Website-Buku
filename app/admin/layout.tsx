@@ -8,6 +8,7 @@ const links = [
   ["/admin/stocks", "Stok"],
   ["/admin/loans", "Peminjaman"],
   ["/admin/transactions", "Transaksi"],
+  ["/admin/messages", "Pesan pengguna"],
   ["/admin/users", "Pengguna"],
 ];
 

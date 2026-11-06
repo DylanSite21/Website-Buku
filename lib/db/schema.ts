@@ -52,6 +52,10 @@ export const stockMovementTypeEnum = mysqlEnum("stock_movement_type", [
   "loan_released",
   "adjustment",
 ]);
+export const contactMessageStatusEnum = mysqlEnum("contact_message_status", [
+  "unread",
+  "read",
+]);
 
 // ==========================================
 // 2. TABEL DATABASE (MYSQL)
@@ -68,6 +72,20 @@ export const users = mysqlTable("users", {
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+export const contactMessages = mysqlTable("contact_messages", {
+  id: varchar("id", { length: 36 })
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: varchar("user_id", { length: 36 })
+    .notNull()
+    .references(() => users.id, { onDelete: "restrict" }),
+  subject: varchar("subject", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  status: contactMessageStatusEnum.default("unread").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  readAt: datetime("read_at"),
 });
 
 export const categories = mysqlTable("categories", {
@@ -247,6 +265,7 @@ export const stockMovements = mysqlTable("stock_movements", {
 export const appRelations = defineRelations(
   {
     users,
+    contactMessages,
     categories,
     books,
     stocks,
@@ -260,6 +279,10 @@ export const appRelations = defineRelations(
   },
   (r) => ({
     users: {
+      contactMessages: r.many.contactMessages({
+        from: r.users.id,
+        to: r.contactMessages.userId,
+      }),
       cart: r.one.carts({
         from: r.users.id,
         to: r.carts.userId,
@@ -283,6 +306,12 @@ export const appRelations = defineRelations(
       stockMovements: r.many.stockMovements({
         from: r.users.id,
         to: r.stockMovements.userId,
+      }),
+    },
+    contactMessages: {
+      user: r.one.users({
+        from: r.contactMessages.userId,
+        to: r.users.id,
       }),
     },
     categories: {

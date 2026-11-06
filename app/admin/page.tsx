@@ -1,19 +1,20 @@
 import Link from "next/link";
 import { count, eq, lt } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { books, loans, stocks, transactions, users } from "@/lib/db/schema";
+import { books, contactMessages, loans, stocks, transactions, users } from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
   const [
-    [bookCount], [userCount], [pendingLoans], [pendingPayments], [lowStock],
+    [bookCount], [userCount], [pendingLoans], [pendingPayments], [lowStock], [unreadMessages],
   ] = await Promise.all([
     db.select({ value: count() }).from(books).where(eq(books.status, "published")),
     db.select({ value: count() }).from(users).where(eq(users.role, "user")),
     db.select({ value: count() }).from(loans).where(eq(loans.status, "pending")),
     db.select({ value: count() }).from(transactions).where(eq(transactions.status, "awaiting_verification")),
     db.select({ value: count() }).from(stocks).where(lt(stocks.availableQuantity, 3)),
+    db.select({ value: count() }).from(contactMessages).where(eq(contactMessages.status, "unread")),
   ]);
   const cards = [
     ["Buku terbit", bookCount.value, "/admin/books"],
@@ -21,6 +22,7 @@ export default async function AdminDashboard() {
     ["Pengajuan pinjam", pendingLoans.value, "/admin/loans"],
     ["Pembayaran menunggu", pendingPayments.value, "/admin/transactions"],
     ["Stok menipis", lowStock.value, "/admin/stocks"],
+    ["Pesan belum dibaca", unreadMessages.value, "/admin/messages"],
   ] as const;
   return (
     <div className="space-y-7">

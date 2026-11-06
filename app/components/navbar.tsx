@@ -14,6 +14,7 @@ export async function Navbar() {
         <div className="flex flex-wrap items-center gap-5 text-sm font-medium">
           <Link className="hover:text-brand" href="/books">Katalog</Link>
           <Link className="hover:text-brand" href="/about">Tentang Kami</Link>
+          <Link className="hover:text-brand" href="/contact">Hubungi Admin</Link>
           {user?.role === "user" && (
             <>
               <Link className="hover:text-brand" href="/cart">Keranjang</Link>
