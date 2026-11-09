@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormSubmit } from "@/app/components/form-submit";
 import type { FormState } from "@/lib/types";
+import { useEffect } from "react";
 
 type BookFields = {
   title: string;
@@ -17,6 +18,24 @@ type BookFields = {
   totalStock: number;
   image: string | null;
 };
+
+
+export function BookAlert({ error, success }: {
+  error?: string;
+  success?: string;
+}) {
+  useEffect(() => {
+    if (error === "active-loan") {
+      alert("Buku masih memiliki peminjaman aktif!");
+    }
+
+    if (success === "archived") {
+      alert("Buku berhasil diarsipkan!");
+    }
+  }, [error, success]);
+
+  return null;
+}
 
 export function AdminBookForm({
   action,

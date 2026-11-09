@@ -165,9 +165,11 @@ export async function archiveBook(bookId: string) {
     .innerJoin(loanItems, eq(loanItems.loanId, loans.id))
     .where(and(eq(loanItems.bookId, bookId), inArray(loans.status, ["pending", "approved", "borrowed"])))
     .limit(1);
-  if (active) redirect("/admin/books?error=active-loan");
+  if (active) {
+  redirect("/admin/books?error=active-loan");
+}
   await db.update(books).set({ status: "archived" }).where(eq(books.id, bookId));
   revalidatePath("/books");
   revalidatePath("/admin/books");
-  redirect("/admin/books");
+redirect("/admin/books?success=archived");
 }
