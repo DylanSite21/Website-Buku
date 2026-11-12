@@ -43,4 +43,5 @@ yarn-error.log*
 next-env.d.ts
 
 # markdown files
-*.md
+AGENTS.md
+PROJECT.md
