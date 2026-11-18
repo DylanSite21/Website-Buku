@@ -5,7 +5,16 @@ import { and, eq, inArray, ne } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { books, categories, loanItems, loans, stockMovements, stocks } from "@/lib/db/schema";
+import {
+  books,
+  cartItems,
+  categories,
+  loanItems,
+  loans,
+  stockMovements,
+  stocks,
+  transactionItems,
+} from "@/lib/db/schema";
 import { requireAdmin } from "@/lib/dal";
 import { createSlug } from "@/lib/utils";
 import { deleteCover, saveImage } from "@/lib/uploads";
@@ -172,4 +181,49 @@ export async function archiveBook(bookId: string) {
   revalidatePath("/books");
   revalidatePath("/admin/books");
 redirect("/admin/books?success=archived");
+}
+
+export async function deleteBook(bookId: string) {
+  await requireAdmin();
+
+  const result = await db.transaction(async (tx) => {
+    const [book] = await tx.select({ image: books.image, slug: books.slug })
+      .from(books).where(eq(books.id, bookId)).for("update").limit(1);
+    if (!book) return { error: "not-found" as const };
+
+    const [stock] = await tx.select().from(stocks)
+      .where(eq(stocks.bookId, bookId)).for("update").limit(1);
+    const [activeLoan] = await tx.select({ id: loans.id }).from(loans)
+      .innerJoin(loanItems, eq(loanItems.loanId, loans.id))
+      .where(and(
+        eq(loanItems.bookId, bookId),
+        inArray(loans.status, ["pending", "approved", "borrowed"]),
+      ))
+      .limit(1);
+
+    if (activeLoan || stock?.borrowedQuantity || stock?.reservedQuantity) {
+      return { error: "active-loan" as const };
+    }
+
+    const [loanHistory] = await tx.select({ id: loanItems.id }).from(loanItems)
+      .where(eq(loanItems.bookId, bookId)).limit(1);
+    const [transactionHistory] = await tx.select({ id: transactionItems.id })
+      .from(transactionItems).where(eq(transactionItems.bookId, bookId)).limit(1);
+    if (loanHistory || transactionHistory) return { error: "has-history" as const };
+
+    await tx.delete(cartItems).where(eq(cartItems.bookId, bookId));
+    await tx.delete(stockMovements).where(eq(stockMovements.bookId, bookId));
+    await tx.delete(stocks).where(eq(stocks.bookId, bookId));
+    await tx.delete(books).where(eq(books.id, bookId));
+    return { book };
+  });
+
+  if ("error" in result) {
+    redirect(`/admin/books?error=${result.error}`);
+  }
+  if (result.book.image) await deleteCover(result.book.image);
+  revalidatePath("/books");
+  revalidatePath(`/books/${result.book.slug}`);
+  revalidatePath("/admin/books");
+  redirect("/admin/books?success=deleted");
 }

@@ -34,7 +34,6 @@ export default async function AdminBooksPage({ searchParams }: { searchParams: P
         <div><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">Katalog</p><h1 className="mt-2 text-4xl font-bold">Kelola buku</h1></div>
         <Link href="/admin/books/new" className="btn-primary">Tambah buku</Link>
       </div>
-      {error === "active-loan" && <p className="rounded-md bg-amber-50 p-3 text-sm text-amber-800">Buku masih memiliki peminjaman aktif dan tidak dapat diarsipkan.</p>}
       <form className="flex flex-wrap gap-3 rounded-xl border border-line bg-white p-4" role="search">
         <label className="sr-only" htmlFor="book-search">Cari buku</label>
         <input id="book-search" className="input min-w-0 flex-1" type="search" name="q" defaultValue={query} placeholder="Cari judul, penulis, ISBN, atau kategori" />
