@@ -2,12 +2,14 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 const COOKIE_NAME = "book-store-session";
-const SESSION_DURATION = 60 * 60 * 24 * 7;
+const SESSION_DURATION = 86400;
 
 function getSecret() {
   const secret = process.env.AUTH_SECRET;
   if (!secret || secret.length < 32) {
-    throw new Error("AUTH_SECRET harus diatur dan memiliki minimal 32 karakter.");
+    throw new Error(
+      "AUTH_SECRET harus diatur dan memiliki minimal 32 karakter.",
+    );
   }
   return new TextEncoder().encode(secret);
 }
