@@ -43,7 +43,7 @@ yarn-error.log*
 next-env.d.ts
 
 # Local Image
-./public/uploads/*
+/public/uploads/*
 
 # markdown files
 AGENTS.md
