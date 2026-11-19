@@ -26,8 +26,17 @@ function NavigationLinks({ user }: { user: NavbarUser }) {
         <Link className="hover:text-brand" href="/admin">Admin</Link>
       )}
       {user ? (
-        <form action={logout}>
-          <button className="btn-outline">{user.name} · Keluar</button>
+        <form
+          action={logout}
+          onSubmit={(event) => {
+            if (!window.confirm("Yakin ingin keluar dari akun?")) {
+              event.preventDefault();
+            }
+          }}
+        >
+          <button type="submit" className="btn-outline">
+            {user.name} · Keluar
+          </button>
         </form>
       ) : (
         <>

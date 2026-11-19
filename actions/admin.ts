@@ -19,7 +19,8 @@ export async function saveCategory(
   await requireAdmin();
   const name = String(formData.get("name") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
-  if (name.length < 2 || name.length > 255) return { error: "Nama kategori harus 2–255 karakter." };
+  if (name.length < 10 || name.length > 20) return { error: "Nama kategori harus 10-20 karakter." };
+  if (description.length < 50 || description.length > 100) return { error: "Deskripsi kategori harus 50-100 karakter." };
   const slug = createSlug(name);
   const [duplicate] = await db.select({ id: categories.id }).from(categories)
     .where(categoryId

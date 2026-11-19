@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { CheckoutForm } from "@/app/components/checkout-form";
-import { removeCartItem, updateCartItem } from "@/actions/cart";
+import { CartQuantityControl } from "@/app/components/cart-quantity-control";
+import { removeCartItem } from "@/actions/cart";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/dal";
 import { books, cartItems, carts, stocks } from "@/lib/db/schema";
@@ -43,10 +44,11 @@ export default async function CartPage() {
                   <p className="mt-1 text-sm text-muted">{formatCurrency(book.price)} · {available} tersedia</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <form action={updateCartItem.bind(null, item.id)} className="flex min-w-0 flex-1 gap-2 sm:flex-none">
-                    <input className="input w-20" type="number" name="quantity" min="1" max="20" defaultValue={item.quantity} aria-label={`Jumlah ${book.title}`} />
-                    <button className="btn-outline">Perbarui</button>
-                  </form>
+                  <CartQuantityControl
+                    itemId={item.id}
+                    title={book.title}
+                    initialQuantity={item.quantity}
+                  />
                   <form action={removeCartItem.bind(null, item.id)}>
                     <button className="btn-danger">Hapus</button>
                   </form>

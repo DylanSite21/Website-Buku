@@ -32,7 +32,10 @@ export default async function CatalogPage({
   const safePage =
     Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
   const [countResult, categoryList] = await Promise.all([
-    db.select({ value: count() }).from(books).where(and(...conditions)),
+    db
+      .select({ value: count() })
+      .from(books)
+      .where(and(...conditions)),
     db.select().from(categories).orderBy(categories.name),
   ]);
   const totalCount = countResult[0].value;
@@ -111,9 +114,7 @@ export default async function CatalogPage({
       <div className="flex items-center justify-between border-b border-line pb-4">
         <div>
           <h2 className="text-xl font-bold">Koleksi Buku</h2>
-          <p className="mt-1 text-sm text-muted">
-            {totalCount} buku ditemukan
-          </p>
+          <p className="mt-1 text-sm text-muted">{totalCount} buku ditemukan</p>
         </div>
       </div>
 
