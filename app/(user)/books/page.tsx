@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { and, eq, like, or, type SQL } from "drizzle-orm";
+import { and, count, eq, like, or, type SQL } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { books, categories, stocks } from "@/lib/db/schema";
 import { BookCover } from "@/app/components/book-cover";
@@ -7,12 +7,14 @@ import { formatCurrency } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
+const PAGE_SIZE = 10;
+
 export default async function CatalogPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; category?: string; page?: string }>;
 }) {
-  const { q = "", category = "" } = await searchParams;
+  const { q = "", category = "", page: pageParam = "" } = await searchParams;
   const conditions: SQL[] = [eq(books.status, "published")];
   if (q.trim()) {
     const term = `%${q.trim().replace(/[%_]/g, "\\$&")}%`;
@@ -26,16 +28,41 @@ export default async function CatalogPage({
   }
   if (category) conditions.push(eq(books.categoryId, category));
 
-  const [results, categoryList] = await Promise.all([
-    db
-      .select({ book: books, categoryName: categories.name, stock: stocks })
-      .from(books)
-      .leftJoin(categories, eq(books.categoryId, categories.id))
-      .leftJoin(stocks, eq(books.id, stocks.bookId))
-      .where(and(...conditions))
-      .orderBy(books.title),
+  const requestedPage = Number(pageParam);
+  const safePage =
+    Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  const [countResult, categoryList] = await Promise.all([
+    db.select({ value: count() }).from(books).where(and(...conditions)),
     db.select().from(categories).orderBy(categories.name),
   ]);
+  const totalCount = countResult[0].value;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const currentPage = totalPages > 0 ? Math.min(safePage, totalPages) : 1;
+  const results = await db
+    .select({ book: books, categoryName: categories.name, stock: stocks })
+    .from(books)
+    .leftJoin(categories, eq(books.categoryId, categories.id))
+    .leftJoin(stocks, eq(books.id, stocks.bookId))
+    .where(and(...conditions))
+    .orderBy(books.title)
+    .limit(PAGE_SIZE)
+    .offset((currentPage - 1) * PAGE_SIZE);
+
+  const pageHref = (page: number) => {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (category) params.set("category", category);
+    params.set("page", String(page));
+    return `/books?${params.toString()}`;
+  };
+  const firstVisiblePage = Math.max(
+    1,
+    Math.min(currentPage - 2, totalPages - 4),
+  );
+  const visiblePages = Array.from(
+    { length: Math.min(totalPages, 5) },
+    (_, index) => firstVisiblePage + index,
+  );
 
   return (
     <main className="space-y-10">
@@ -85,13 +112,13 @@ export default async function CatalogPage({
         <div>
           <h2 className="text-xl font-bold">Koleksi Buku</h2>
           <p className="mt-1 text-sm text-muted">
-            {results.length} buku ditemukan
+            {totalCount} buku ditemukan
           </p>
         </div>
       </div>
 
       {/* Empty state */}
-      {results.length === 0 ? (
+      {totalCount === 0 ? (
         <div className="rounded-2xl border border-dashed border-line bg-white px-5 py-16 text-center">
           <p className="text-lg font-bold">Buku tidak ditemukan</p>
           <p className="mt-2 text-sm text-muted">
@@ -170,6 +197,48 @@ export default async function CatalogPage({
             </li>
           ))}
         </ul>
+      )}
+
+      {totalPages > 1 && (
+        <nav
+          aria-label="Navigasi halaman katalog"
+          className="flex items-center justify-center gap-2"
+        >
+          {currentPage > 1 && (
+            <Link
+              href={pageHref(currentPage - 1)}
+              className="btn-outline px-3 py-2 text-sm"
+              aria-label="Halaman sebelumnya"
+            >
+              Sebelumnya
+            </Link>
+          )}
+
+          {visiblePages.map((page) => (
+            <Link
+              key={page}
+              href={pageHref(page)}
+              aria-current={page === currentPage ? "page" : undefined}
+              className={`rounded-lg px-3 py-2 text-sm font-semibold ${
+                page === currentPage
+                  ? "bg-brand text-white"
+                  : "border border-line bg-white text-ink hover:bg-emerald-50"
+              }`}
+            >
+              {page}
+            </Link>
+          ))}
+
+          {currentPage < totalPages && (
+            <Link
+              href={pageHref(currentPage + 1)}
+              className="btn-outline px-3 py-2 text-sm"
+              aria-label="Halaman berikutnya"
+            >
+              Berikutnya
+            </Link>
+          )}
+        </nav>
       )}
     </main>
   );

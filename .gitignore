@@ -42,6 +42,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Local Image
+./public/uploads/*
+
 # markdown files
 AGENTS.md
 PROJECT.md
