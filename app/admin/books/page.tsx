@@ -16,13 +16,20 @@ export default async function AdminBooksPage({
   searchParams,
 }: {
   searchParams: Promise<{
+    category?: string;
     error?: string;
     page?: string;
     q?: string;
     success?: string;
   }>;
 }) {
-  const { error, page: pageParam = "", success, q = "" } = await searchParams;
+  const {
+    category: categoryId = "",
+    error,
+    page: pageParam = "",
+    success,
+    q = "",
+  } = await searchParams;
   const query = q.trim().slice(0, 100);
   const conditions: SQL[] = [];
   if (query) {
@@ -36,14 +43,19 @@ export default async function AdminBooksPage({
       )!,
     );
   }
+  if (categoryId) conditions.push(eq(books.categoryId, categoryId));
+
   const requestedPage = Number(pageParam);
   const safePage =
     Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
-  const countResult = await db
-    .select({ value: count() })
-    .from(books)
-    .leftJoin(categories, eq(categories.id, books.categoryId))
-    .where(conditions.length ? and(...conditions) : undefined);
+  const [countResult, categoryList] = await Promise.all([
+    db
+      .select({ value: count() })
+      .from(books)
+      .leftJoin(categories, eq(categories.id, books.categoryId))
+      .where(conditions.length ? and(...conditions) : undefined),
+    db.select().from(categories).orderBy(asc(categories.name)),
+  ]);
   const totalCount = countResult[0].value;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
   const currentPage = totalPages > 0 ? Math.min(safePage, totalPages) : 1;
@@ -59,6 +71,7 @@ export default async function AdminBooksPage({
   const pageHref = (page: number) => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
+    if (categoryId) params.set("category", categoryId);
     params.set("page", String(page));
     return `/admin/books?${params.toString()}`;
   };
@@ -100,8 +113,23 @@ export default async function AdminBooksPage({
           defaultValue={query}
           placeholder="Cari judul, penulis, ISBN, atau kategori"
         />
+
+        <select
+          name="category"
+          defaultValue={categoryId}
+          aria-label="Filter kategori"
+          className="input w-full sm:w-56"
+        >
+          <option value="">Semua kategori</option>
+          {categoryList.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+
         <button className="btn-primary">Cari</button>
-        {query && (
+        {(query || categoryId) && (
           <Link className="btn-outline" href="/admin/books">
             Reset
           </Link>
@@ -183,7 +211,7 @@ export default async function AdminBooksPage({
         </table>
         {rows.length === 0 && (
           <p className="p-8 text-center text-sm text-muted">
-            {query
+            {query || categoryId
               ? "Buku tidak ditemukan. Coba kata kunci lain."
               : "Belum ada data buku."}
           </p>

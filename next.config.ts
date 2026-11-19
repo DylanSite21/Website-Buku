@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
     serverActions: { bodySizeLimit: "3mb" },
+    authInterrupts: true,
   },
   allowedDevOrigins: ["win.dylansite.online", "dylansite.online"],
   devIndicators: false,
