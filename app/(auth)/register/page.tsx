@@ -18,6 +18,31 @@ export default function RegisterPage() {
           <input className="input" name="name" autoComplete="name" minLength={3} maxLength={255} required />
         </label>
         <label className="block">
+          <span className="label">NIK</span>
+          <input
+            className="input"
+            name="nik"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            minLength={16}
+            maxLength={16}
+            pattern="[0-9]{16}"
+            placeholder="16 digit angka"
+            required
+          />
+        </label>
+        <label className="block">
+          <span className="label">Alamat</span>
+          <textarea
+            className="input min-h-24"
+            name="address"
+            autoComplete="street-address"
+            rows={3}
+            required
+          />
+        </label>
+        <label className="block">
           <span className="label">Email</span>
           <input className="input" type="email" name="email" autoComplete="email" required />
         </label>

@@ -26,6 +26,7 @@ function parseBook(formData: FormData) {
     title: String(formData.get("title") ?? "").trim(),
     categoryId: String(formData.get("categoryId") ?? ""),
     author: String(formData.get("author") ?? "").trim(),
+    addressAuthor: String(formData.get("addressAuthor") ?? "").trim(),
     publisher: String(formData.get("publisher") ?? "").trim(),
     publicationYear: Number(formData.get("publicationYear")),
     isbn: String(formData.get("isbn") ?? "").trim(),
@@ -67,6 +68,7 @@ export async function createBook(_: FormState, formData: FormData): Promise<Form
       await tx.insert(books).values({
         id: bookId, categoryId: data.categoryId, title: data.title, slug,
         isbn: data.isbn || null, author: data.author, publisher: data.publisher,
+        addressAuthor: data.addressAuthor || null,
         publicationYear: data.publicationYear, description: data.description || null,
         image: cover.filename, price: data.price, status: data.status,
       });
@@ -135,6 +137,7 @@ export async function updateBook(bookId: string, _: FormState, formData: FormDat
       await tx.update(books).set({
         categoryId: data.categoryId, title: data.title, slug, isbn: data.isbn || null,
         author: data.author, publisher: data.publisher, publicationYear: data.publicationYear,
+        addressAuthor: data.addressAuthor || null,
         description: data.description || null, price: data.price, status: data.status, image,
       }).where(eq(books.id, bookId));
       await tx.update(stocks).set({

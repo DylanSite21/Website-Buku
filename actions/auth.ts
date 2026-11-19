@@ -16,19 +16,35 @@ export async function register(
   const parsed = registerSchema.safeParse({
     name: String(formData.get("name") ?? "").trim(),
     email: String(formData.get("email") ?? "").trim().toLowerCase(),
+    nik: String(formData.get("nik") ?? "").trim(),
+    address: String(formData.get("address") ?? "").trim(),
     password: String(formData.get("password") ?? ""),
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? "Data registrasi tidak valid." };
   }
 
-  const { name, email, password } = parsed.data;
+  const { name, email, nik, address, password } = parsed.data;
   const existing = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
   if (existing.length) return { error: "Email sudah terdaftar." };
 
+  const existingNik = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.nik, nik))
+    .limit(1);
+  if (existingNik.length) return { error: "NIK sudah terdaftar." };
+
   const [created] = await db
     .insert(users)
-    .values({ name, email, password: await bcrypt.hash(password, 12), role: "user" })
+    .values({
+      name,
+      email,
+      nik,
+      address,
+      password: await bcrypt.hash(password, 12),
+      role: "user",
+    })
     .$returningId();
 
   await createSession(created.id);

@@ -4,6 +4,7 @@ export const bookSchema = z.object({
   title: z.string().trim().min(1, "Judul buku wajib diisi").max(255),
   categoryId: z.string().uuid("Kategori tidak valid"),
   author: z.string().trim().min(1, "Penulis wajib diisi").max(255),
+  addressAuthor: z.string().trim().max(255, "Alamat penulis maksimal 255 karakter"),
   publisher: z.string().trim().min(1, "Penerbit wajib diisi").max(255),
   publicationYear: z.number().int().min(1000).max(new Date().getFullYear()),
   isbn: z.string().trim().max(20).refine((value) => !value || value.length >= 10, "ISBN minimal 10 karakter"),

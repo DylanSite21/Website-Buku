@@ -19,7 +19,7 @@ export default function LoginPage() {
         Lanjutkan membaca dan mengelola koleksi Anda.
       </p>
       <form action={formAction} className="mt-7 space-y-4">
-        <label className="block">
+        {/* <label className="block">
           <span className="label">Nama</span>
           <input
             className="input"
@@ -28,8 +28,8 @@ export default function LoginPage() {
             autoComplete="name"
             required
           />
-        </label>
-        {/* <label className="block">
+        </label> */}
+        <label className="block">
           <span className="label">Email</span>
           <input
             className="input"
@@ -38,7 +38,7 @@ export default function LoginPage() {
             autoComplete="email"
             required
           />
-        </label> */}
+        </label>
         <label className="block">
           <span className="label">Kata sandi</span>
           <input
